@@ -1,0 +1,39 @@
+{
+  "name": "hotbits",
+  "version": "0.0.0",
+  "description": "A library to fetch random bytes from the HotBits API",
+  "main": "dist/index.js",
+  "files" : [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "npm run clean && babel --out-dir dist src",
+    "lint": "eslint src",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kenjiO/hotbits.git"
+  },
+  "keywords": [
+    "random"
+  ],
+  "author": "Kenji Okamoto",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kenjiO/hotbits/issues"
+  },
+  "homepage": "https://github.com/kenjiO/hotbits#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-eslint": "^10.0.1",
+    "babel-preset-env": "^1.7.0",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-jsx-a11y": "^6.2.1",
+    "eslint-plugin-react": "^7.13.0",
+    "rimraf": "^2.6.3"
+  }
+}
