@@ -3,14 +3,14 @@
   "version": "0.0.0",
   "description": "A library to fetch random bytes from the HotBits API",
   "main": "dist/index.js",
-  "files" : [
+  "files": [
     "dist"
   ],
   "scripts": {
     "clean": "rimraf dist",
-    "build": "npm run clean && babel --out-dir dist src",
+    "build": "npm run clean && babel --out-dir dist --ignore '**/*.test.js' src",
     "lint": "eslint src",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest \"src/.+\\.test\\.js$\""
   },
   "repository": {
     "type": "git",
@@ -35,6 +35,7 @@
     "eslint-plugin-import": "^2.17.3",
     "eslint-plugin-jsx-a11y": "^6.2.1",
     "eslint-plugin-react": "^7.13.0",
+    "jest": "^24.8.0",
     "rimraf": "^2.6.3"
   }
 }
