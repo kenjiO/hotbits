@@ -12,7 +12,7 @@ describe('hotbits', () => {
 
   it('array contains 10 results', () =>
     hotbits().then((data) => {
-      expect(data.length).toBe(10);
+      expect(data.length).toBe(hotbits.DEFAULT_NUMBER_OF_RESULTS);
     }));
 
   it('each result is an 8 bit integer', () =>
