@@ -6,7 +6,7 @@ function setupNock() {
     { length: hotbits.DEFAULT_NUMBER_OF_RESULTS },
     () => Math.floor(Math.random() * 256),
   );
-  nock('http://www.fourmilab.ch')
+  nock('https://www.fourmilab.ch')
     .get(`/cgi-bin/Hotbits.api?nbytes=${hotbits.DEFAULT_NUMBER_OF_RESULTS}&fmt=json&apikey=&pseudo=pseudo`)
     .reply(200, { data: randomBytes });
 }

@@ -1,8 +1,8 @@
-import http from 'http';
+import https from 'https';
 
-export default function httpRequest(params) {
+export default function httpsRequest(params) {
   return new Promise((resolve) => {
-    http.get(params, (res) => {
+    https.get(params, (res) => {
       let body = '';
 
       res.on('data', (data) => {
