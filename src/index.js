@@ -7,7 +7,13 @@ const hotbits = () => {
     host: 'www.fourmilab.ch',
     path: `/cgi-bin/Hotbits.api?nbytes=${DEFAULT_NUMBER_OF_RESULTS}&fmt=json&apikey=&pseudo=pseudo`,
   };
-  return httpsRequest(params).then(res => JSON.parse(res).data);
+  return httpsRequest(params).then((res) => {
+    try {
+      return JSON.parse(res).data;
+    } catch (e) {
+      throw new Error('Reply received from server not in expected JSON format');
+    }
+  });
 };
 
 Object.defineProperty(hotbits, 'DEFAULT_NUMBER_OF_RESULTS', {
