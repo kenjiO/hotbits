@@ -105,9 +105,18 @@ describe('hotbits', () => {
       .rejects.toThrow('API key must be type string. Got boolean'));
 
   it('throws an error when server indicates invalid key', () => {
-    const response = '<!DOCTYPE html><html><head><title>HotBits</title></head>'
-      + '<body><b>HotBits API Key invalid.</b></body></html>';
+    const response = '<!DOCTYPE html><html><head><title>HotBits Error</title></head>'
+      + '<body><blockquote><p><b>HotBits API Key invalid. See the <a href="/apikey.html">'
+      + 'API Key</a> documentation</b></p></blockquote></body></html>';
     setupNock(200, response, { 'content-type': 'text/html' });
     return expect(hotbits(API_KEY)).rejects.toThrow('HotBits API Key invalid');
+  });
+
+  it('throws an error when server indicates an error', () => {
+    const response = '<!DOCTYPE html><html><head><title>HotBits Error</title></head>'
+      + '<body><blockquote><p><b>There was a problem with your request. See the <a href="/apikey.html">'
+      + 'API Key</a> documentation</b></p></blockquote></body></html>';
+    setupNock(200, response, { 'content-type': 'text/html' });
+    return expect(hotbits(API_KEY)).rejects.toThrow('There was a problem with your request');
   });
 });

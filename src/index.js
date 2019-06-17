@@ -1,3 +1,4 @@
+import extractError from './extractError';
 import httpsRequest from './https-request';
 
 const DEFAULT_NUMBER_OF_RESULTS = 10;
@@ -23,14 +24,19 @@ const hotbits = (key) => {
   return httpsRequest(params).then(({ headers, body }) => {
     const contentType = headers['content-type'];
 
-    if (contentType === 'text/html' && body.includes('HotBits API Key invalid')) {
-      throw new Error('HotBits API Key invalid');
+    // The api server returns errors in html format
+    if (contentType === 'text/html') {
+      const error = extractError(body);
+      if (error) {
+        throw new Error(error);
+      }
     }
 
     if (contentType !== 'application/json') {
       throw new Error(`${contentType} content-type received from server. expected application/json`);
     }
 
+    // The json response from the server puts the random numbers in the 'data' property
     return JSON.parse(body).data;
   });
 };
