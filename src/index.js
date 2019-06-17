@@ -3,15 +3,21 @@ import httpsRequest from './https-request';
 
 const DEFAULT_NUMBER_OF_RESULTS = 10;
 
-const hotbits = (key) => {
+const validateApiKeyParameter = (key) => {
   if (key === undefined || key === '') {
-    return Promise.reject(new Error('No API key specified'));
+    throw new Error('No API key specified');
+  } else if (key === null) {
+    throw new Error('API key must be type string. Got null.');
+  } else if (typeof key !== 'string') {
+    throw new Error(`API key must be type string. Got ${typeof key}.`);
   }
-  if (key === null) {
-    return Promise.reject(new Error('API key must be type string. Got null.'));
-  }
-  if (typeof key !== 'string') {
-    return Promise.reject(new Error(`API key must be type string. Got ${typeof key}.`));
+};
+
+const hotbits = (key) => {
+  try {
+    validateApiKeyParameter(key);
+  } catch (e) {
+    return Promise.reject(e);
   }
 
   const encodedKey = encodeURIComponent(key);
