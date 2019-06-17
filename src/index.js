@@ -20,15 +20,18 @@ const hotbits = (key) => {
     path: `/cgi-bin/Hotbits.api?nbytes=${DEFAULT_NUMBER_OF_RESULTS}&fmt=json&apikey=${encodedKey}`,
   };
 
-  return httpsRequest(params).then((res) => {
-    try {
-      return JSON.parse(res).data;
-    } catch (e) {
-      if (res.includes('HotBits API Key invalid')) {
-        throw new Error('HotBits API Key invalid');
-      }
-      throw new Error('Reply received from server not in expected JSON format');
+  return httpsRequest(params).then(({ headers, body }) => {
+    const contentType = headers['content-type'];
+
+    if (contentType === 'text/html' && body.includes('HotBits API Key invalid')) {
+      throw new Error('HotBits API Key invalid');
     }
+
+    if (contentType !== 'application/json') {
+      throw new Error(`${contentType} content-type received from server. expected application/json`);
+    }
+
+    return JSON.parse(body).data;
   });
 };
 

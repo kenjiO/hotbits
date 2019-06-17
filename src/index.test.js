@@ -8,10 +8,10 @@ function randomBytes(quantity) {
   return Array.from({ length }, () => Math.floor(Math.random() * 256));
 }
 
-function setupNock(statusCode, response) {
+function setupNock(statusCode, response, headers) {
   nock('https://www.fourmilab.ch')
     .get(`/cgi-bin/Hotbits.api?nbytes=${hotbits.DEFAULT_NUMBER_OF_RESULTS}&fmt=json&apikey=${API_KEY}`)
-    .reply(statusCode, response);
+    .reply(statusCode, response, headers);
 }
 
 describe('hotbits', () => {
@@ -19,26 +19,26 @@ describe('hotbits', () => {
   afterEach(nock.cleanAll);
 
   it('returns a promise', () => {
-    setupNock(200, { data: randomBytes() });
+    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
     expect(hotbits(API_KEY) instanceof Promise).toBe(true);
   });
 
   it('resolves to an array', () => {
-    setupNock(200, { data: randomBytes() });
+    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
     return hotbits(API_KEY).then((data) => {
       expect(Array.isArray(data)).toBe(true);
     });
   });
 
   it('array contains 10 results', () => {
-    setupNock(200, { data: randomBytes() });
+    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
     return hotbits(API_KEY).then((data) => {
       expect(data.length).toBe(hotbits.DEFAULT_NUMBER_OF_RESULTS);
     });
   });
 
   it('each result is an 8 bit integer', () => {
-    setupNock(200, { data: randomBytes() });
+    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
     return hotbits(API_KEY).then((data) => {
       data.forEach((number) => {
         expect(Number.isInteger(number)).toBe(true);
@@ -49,7 +49,7 @@ describe('hotbits', () => {
   });
 
   it('does not produce the same results', () => {
-    setupNock(200, { data: randomBytes() });
+    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
     return hotbits(API_KEY).then((data1) => {
       setupNock(200, { data: randomBytes() });
       return hotbits(API_KEY).then((data2) => {
@@ -70,9 +70,18 @@ describe('hotbits', () => {
     return expect(hotbits(API_KEY)).rejects.toThrow('getaddrinfo ENOTFOUND www.fourmilab.ch');
   });
 
-  it('throws an error for a reply not in JSON format', () => {
-    setupNock(200, '1, 2, 3, 4');
-    return expect(hotbits(API_KEY)).rejects.toThrow('Reply received from server not in expected JSON format');
+  it('throws an error for a reply in text/plain format', () => {
+    setupNock(200, '1, 2, 3, 4', { 'content-type': 'text/plain' });
+    return expect(hotbits(API_KEY))
+      .rejects.toThrow('text/plain content-type received from server. expected application/json');
+  });
+
+  it('throws an error for a reply in text/html format', () => {
+    const response = '<html><head><title>Results</title></head><body>'
+      + 'The following hexadecimal data are thebytes you requested. <pre> 8C7559E7D8C9E81862DE</pre></body></html>';
+    setupNock(200, response, { 'content-type': 'text/html' });
+    return expect(hotbits(API_KEY))
+      .rejects.toThrow('text/html content-type received from server. expected application/json');
   });
 
   it('throws an error for missing api key', () =>
@@ -98,7 +107,7 @@ describe('hotbits', () => {
   it('throws an error when server indicates invalid key', () => {
     const response = '<!DOCTYPE html><html><head><title>HotBits</title></head>'
       + '<body><b>HotBits API Key invalid.</b></body></html>';
-    setupNock(200, response);
+    setupNock(200, response, { 'content-type': 'text/html' });
     return expect(hotbits(API_KEY)).rejects.toThrow('HotBits API Key invalid');
   });
 });

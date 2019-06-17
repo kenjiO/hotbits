@@ -13,7 +13,7 @@ export default function httpsRequest(params) {
         });
 
         res.on('end', () => {
-          resolve(body);
+          resolve({ headers: res.headers, body });
         });
       }
     }).on('error', (e) => {
