@@ -3,28 +3,34 @@ import httpsRequest from './https-request';
 
 const DEFAULT_NUMBER_OF_RESULTS = 10;
 
-const validateApiKeyParameter = (key) => {
+const validateParameters = (key, options) => {
   if (key === undefined || key === '') {
     throw new Error('No API key specified');
   } else if (key === null) {
     throw new Error('API key must be type string. Got null.');
   } else if (typeof key !== 'string') {
     throw new Error(`API key must be type string. Got ${typeof key}.`);
+  } else if (options === null || typeof options !== 'object' || Array.isArray(options)) {
+    throw new Error('options parameter must be an object');
+  } else if ((options.number !== undefined)
+      && (!Number.isInteger(options.number) || options.number < 1)) {
+    throw new Error('number option must be a positive integer');
   }
 };
 
-const hotbits = (key) => {
+const hotbits = (key, options = {}) => {
   try {
-    validateApiKeyParameter(key);
+    validateParameters(key, options);
   } catch (e) {
     return Promise.reject(e);
   }
 
   const encodedKey = encodeURIComponent(key);
+  const nbytes = options.number || DEFAULT_NUMBER_OF_RESULTS;
 
   const params = {
     host: 'www.fourmilab.ch',
-    path: `/cgi-bin/Hotbits.api?nbytes=${DEFAULT_NUMBER_OF_RESULTS}&fmt=json&apikey=${encodedKey}`,
+    path: `/cgi-bin/Hotbits.api?nbytes=${nbytes}&fmt=json&apikey=${encodedKey}`,
   };
 
   return httpsRequest(params).then(({ headers, body }) => {
