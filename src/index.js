@@ -72,4 +72,4 @@ Object.defineProperty(hotbits, 'MAX_NUMBER_OF_RESULTS', {
   writable: false,
 });
 
-export default hotbits;
+module.exports = hotbits;
