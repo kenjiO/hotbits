@@ -191,4 +191,10 @@ describe('hotbits', () => {
     return expect(hotbits(API_KEY, { number: -5 }))
       .rejects.toThrow('number option must be a positive integer');
   });
+
+  it('errors when option.number parameter is more than MAX_NUMBER_OF_RESULTS', () => {
+    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
+    return expect(hotbits(API_KEY, { number: hotbits.MAX_NUMBER_OF_RESULTS + 1 }))
+      .rejects.toThrow(`number option maximum allowed is ${hotbits.MAX_NUMBER_OF_RESULTS}`);
+  });
 });

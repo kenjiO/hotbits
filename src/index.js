@@ -2,6 +2,7 @@ import extractError from './extractError';
 import httpsRequest from './https-request';
 
 const DEFAULT_NUMBER_OF_RESULTS = 10;
+const MAX_NUMBER_OF_RESULTS = 2048;
 
 const validateParameters = (key, options) => {
   if (key === undefined || key === '') {
@@ -15,6 +16,8 @@ const validateParameters = (key, options) => {
   } else if ((options.number !== undefined)
       && (!Number.isInteger(options.number) || options.number < 1)) {
     throw new Error('number option must be a positive integer');
+  } else if (options.number > MAX_NUMBER_OF_RESULTS) {
+    throw new Error(`number option maximum allowed is ${MAX_NUMBER_OF_RESULTS}`);
   }
 };
 
@@ -55,6 +58,11 @@ const hotbits = (key, options = {}) => {
 
 Object.defineProperty(hotbits, 'DEFAULT_NUMBER_OF_RESULTS', {
   value: DEFAULT_NUMBER_OF_RESULTS,
+  writable: false,
+});
+
+Object.defineProperty(hotbits, 'MAX_NUMBER_OF_RESULTS', {
+  value: MAX_NUMBER_OF_RESULTS,
   writable: false,
 });
 
