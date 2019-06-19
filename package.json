@@ -13,7 +13,8 @@
     "clean": "rimraf dist",
     "build": "npm run clean && babel --out-dir dist --ignore '**/*.test.js' src",
     "lint": "eslint src",
-    "test": "jest \"src/.+\\.test\\.js$\""
+    "test": "jest \"src/.+\\.test\\.js$\"",
+    "watch": "npm run test -- --watch"
   },
   "husky": {
     "hooks": {
