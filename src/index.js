@@ -21,6 +21,12 @@ const validateParameters = (key, options) => {
   }
 };
 
+/**
+ * Get random bytes from the Hotbits API
+ * @param {string} key Hotbits API key
+ * @param {object} options object specifying options
+ * @return promise which resolves to an array of results returned from the api
+ */
 const hotbits = (key, options = {}) => {
   try {
     validateParameters(key, options);
