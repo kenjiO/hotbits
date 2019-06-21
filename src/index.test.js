@@ -3,6 +3,10 @@ import hotbits from './index';
 
 const API_KEY = '1234567890abcdef';
 
+function is8BitInt(value) {
+  return Number.isInteger(value) && value >= 0 && value <= 255;
+}
+
 function randomBytes(quantity) {
   const length = (quantity === undefined) ? hotbits.DEFAULT_NUMBER_OF_RESULTS : quantity;
   return Array.from({ length }, () => Math.floor(Math.random() * 256));
@@ -64,11 +68,7 @@ describe('hotbits', () => {
   it('each result is an 8 bit integer', () => {
     setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
     return hotbits(API_KEY).then((data) => {
-      data.forEach((number) => {
-        expect(Number.isInteger(number)).toBe(true);
-        expect(number).toBeGreaterThanOrEqual(0);
-        expect(number).toBeLessThanOrEqual(255);
-      });
+      expect(data.every(is8BitInt)).toBe(true);
     });
   });
 
