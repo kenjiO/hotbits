@@ -1,6 +1,6 @@
 {
   "name": "hotbits",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "A library to fetch random bytes from the HotBits API",
   "engines": {
     "node": ">=6.17"
