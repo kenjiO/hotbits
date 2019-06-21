@@ -82,119 +82,123 @@ describe('hotbits', () => {
     });
   });
 
-  it('handles http error codes', () => {
-    setupNock(404);
-    return expect(hotbits(API_KEY)).rejects.toThrow('http status code 404 received. Expected 200');
+  describe('server error handling', () => {
+    it('handles http error codes', () => {
+      setupNock(404);
+      return expect(hotbits(API_KEY)).rejects.toThrow('http status code 404 received. Expected 200');
+    });
+
+    it('handles network errors', () => {
+      nock('https://www.fourmilab.ch')
+        .get(`/cgi-bin/Hotbits.api?nbytes=${hotbits.DEFAULT_NUMBER_OF_RESULTS}&fmt=json&apikey=${API_KEY}`)
+        .replyWithError('getaddrinfo ENOTFOUND www.fourmilab.ch');
+      return expect(hotbits(API_KEY)).rejects.toThrow('getaddrinfo ENOTFOUND www.fourmilab.ch');
+    });
+
+    it('errors for a reply in text/plain format', () => {
+      setupNock(200, '1, 2, 3, 4', { 'content-type': 'text/plain' });
+      return expect(hotbits(API_KEY))
+        .rejects.toThrow('text/plain content-type received from server. expected application/json');
+    });
+
+    it('errors for a reply in text/html format', () => {
+      const response = '<html><head><title>Results</title></head><body>'
+        + 'The following hexadecimal data are thebytes you requested. <pre> 8C7559E7D8C9E81862DE</pre></body></html>';
+      setupNock(200, response, { 'content-type': 'text/html' });
+      return expect(hotbits(API_KEY))
+        .rejects.toThrow('text/html content-type received from server. expected application/json');
+    });
+
+    it('errors when when server indicates invalid key', () => {
+      const response = '<!DOCTYPE html><html><head><title>HotBits Error</title></head>'
+        + '<body><blockquote><p><b>HotBits API Key invalid. See the <a href="/apikey.html">'
+        + 'API Key</a> documentation</b></p></blockquote></body></html>';
+      setupNock(200, response, { 'content-type': 'text/html' });
+      return expect(hotbits(API_KEY)).rejects.toThrow('HotBits API Key invalid');
+    });
+
+    it('errors when when server indicates an error', () => {
+      const response = '<!DOCTYPE html><html><head><title>HotBits Error</title></head>'
+        + '<body><blockquote><p><b>There was a problem with your request. See the <a href="/apikey.html">'
+        + 'API Key</a> documentation</b></p></blockquote></body></html>';
+      setupNock(200, response, { 'content-type': 'text/html' });
+      return expect(hotbits(API_KEY)).rejects.toThrow('There was a problem with your request');
+    });
   });
 
-  it('handles network errors', () => {
-    nock('https://www.fourmilab.ch')
-      .get(`/cgi-bin/Hotbits.api?nbytes=${hotbits.DEFAULT_NUMBER_OF_RESULTS}&fmt=json&apikey=${API_KEY}`)
-      .replyWithError('getaddrinfo ENOTFOUND www.fourmilab.ch');
-    return expect(hotbits(API_KEY)).rejects.toThrow('getaddrinfo ENOTFOUND www.fourmilab.ch');
-  });
+  describe('user error handling', () => {
+    it('errors for missing api key', () =>
+      expect(hotbits())
+        .rejects.toThrow('No API key specified'));
 
-  it('throws an error for a reply in text/plain format', () => {
-    setupNock(200, '1, 2, 3, 4', { 'content-type': 'text/plain' });
-    return expect(hotbits(API_KEY))
-      .rejects.toThrow('text/plain content-type received from server. expected application/json');
-  });
+    it('errors for number type api key', () =>
+      expect(hotbits(123456789))
+        .rejects.toThrow('API key must be type string. Got number'));
 
-  it('throws an error for a reply in text/html format', () => {
-    const response = '<html><head><title>Results</title></head><body>'
-      + 'The following hexadecimal data are thebytes you requested. <pre> 8C7559E7D8C9E81862DE</pre></body></html>';
-    setupNock(200, response, { 'content-type': 'text/html' });
-    return expect(hotbits(API_KEY))
-      .rejects.toThrow('text/html content-type received from server. expected application/json');
-  });
+    it('errors for object type api key', () =>
+      expect(hotbits({}))
+        .rejects.toThrow('API key must be type string. Got object.'));
 
-  it('throws an error for missing api key', () =>
-    expect(hotbits())
-      .rejects.toThrow('No API key specified'));
+    it('errors for null type api key', () =>
+      expect(hotbits(null))
+        .rejects.toThrow('API key must be type string. Got null'));
 
-  it('throws an error for number type api key', () =>
-    expect(hotbits(123456789))
-      .rejects.toThrow('API key must be type string. Got number'));
+    it('errors for bool type api key', () =>
+      expect(hotbits(true))
+        .rejects.toThrow('API key must be type string. Got boolean'));
 
-  it('throws an error for object type api key', () =>
-    expect(hotbits({}))
-      .rejects.toThrow('API key must be type string. Got object.'));
+    it('errors when options parameter is a string', () => {
+      setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
+      return expect(hotbits(API_KEY, 'abc'))
+        .rejects.toThrow('options parameter must be an object');
+    });
 
-  it('throws an error for null type api key', () =>
-    expect(hotbits(null))
-      .rejects.toThrow('API key must be type string. Got null'));
+    it('errors when options parameter is null', () => {
+      setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
+      return expect(hotbits(API_KEY, null))
+        .rejects.toThrow('options parameter must be an object');
+    });
 
-  it('throws an error for bool type api key', () =>
-    expect(hotbits(true))
-      .rejects.toThrow('API key must be type string. Got boolean'));
+    it('errors when options parameter is an array', () => {
+      setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
+      return expect(hotbits(API_KEY, []))
+        .rejects.toThrow('options parameter must be an object');
+    });
 
-  it('throws an error when server indicates invalid key', () => {
-    const response = '<!DOCTYPE html><html><head><title>HotBits Error</title></head>'
-      + '<body><blockquote><p><b>HotBits API Key invalid. See the <a href="/apikey.html">'
-      + 'API Key</a> documentation</b></p></blockquote></body></html>';
-    setupNock(200, response, { 'content-type': 'text/html' });
-    return expect(hotbits(API_KEY)).rejects.toThrow('HotBits API Key invalid');
-  });
+    it('errors when wrong type of option.number parameter', () => {
+      setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
+      return expect(hotbits(API_KEY, { number: '1' }))
+        .rejects.toThrow('number option must be a positive integer');
+    });
 
-  it('throws an error when server indicates an error', () => {
-    const response = '<!DOCTYPE html><html><head><title>HotBits Error</title></head>'
-      + '<body><blockquote><p><b>There was a problem with your request. See the <a href="/apikey.html">'
-      + 'API Key</a> documentation</b></p></blockquote></body></html>';
-    setupNock(200, response, { 'content-type': 'text/html' });
-    return expect(hotbits(API_KEY)).rejects.toThrow('There was a problem with your request');
-  });
+    it('errors when option.number parameter is a float', () => {
+      setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
+      return expect(hotbits(API_KEY, { number: 1.5 }))
+        .rejects.toThrow('number option must be a positive integer');
+    });
 
-  it('errors when options paramater is a string', () => {
-    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
-    return expect(hotbits(API_KEY, 'abc'))
-      .rejects.toThrow('options parameter must be an object');
-  });
+    it('errors when option.number parameter is 0', () => {
+      setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
+      return expect(hotbits(API_KEY, { number: 0 }))
+        .rejects.toThrow('number option must be a positive integer');
+    });
 
-  it('errors when options paramater is null', () => {
-    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
-    return expect(hotbits(API_KEY, null))
-      .rejects.toThrow('options parameter must be an object');
-  });
+    it('errors when option.number parameter is negative', () => {
+      setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
+      return expect(hotbits(API_KEY, { number: -5 }))
+        .rejects.toThrow('number option must be a positive integer');
+    });
 
-  it('errors when options paramater is an array', () => {
-    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
-    return expect(hotbits(API_KEY, []))
-      .rejects.toThrow('options parameter must be an object');
-  });
+    it('errors when option.number parameter is negative', () => {
+      setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
+      return expect(hotbits(API_KEY, { number: -5 }))
+        .rejects.toThrow('number option must be a positive integer');
+    });
 
-  it('errors when wrong type of option.number parameter', () => {
-    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
-    return expect(hotbits(API_KEY, { number: '1' }))
-      .rejects.toThrow('number option must be a positive integer');
-  });
-
-  it('errors when option.number parameter is a float', () => {
-    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
-    return expect(hotbits(API_KEY, { number: 1.5 }))
-      .rejects.toThrow('number option must be a positive integer');
-  });
-
-  it('errors when option.number parameter is 0', () => {
-    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
-    return expect(hotbits(API_KEY, { number: 0 }))
-      .rejects.toThrow('number option must be a positive integer');
-  });
-
-  it('errors when option.number parameter is negative', () => {
-    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
-    return expect(hotbits(API_KEY, { number: -5 }))
-      .rejects.toThrow('number option must be a positive integer');
-  });
-
-  it('errors when option.number parameter is negative', () => {
-    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
-    return expect(hotbits(API_KEY, { number: -5 }))
-      .rejects.toThrow('number option must be a positive integer');
-  });
-
-  it('errors when option.number parameter is more than MAX_NUMBER_OF_RESULTS', () => {
-    setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
-    return expect(hotbits(API_KEY, { number: hotbits.MAX_NUMBER_OF_RESULTS + 1 }))
-      .rejects.toThrow(`number option maximum allowed is ${hotbits.MAX_NUMBER_OF_RESULTS}`);
+    it('errors when option.number parameter is more than MAX_NUMBER_OF_RESULTS', () => {
+      setupNock(200, { data: randomBytes() }, { 'content-type': 'application/json' });
+      return expect(hotbits(API_KEY, { number: hotbits.MAX_NUMBER_OF_RESULTS + 1 }))
+        .rejects.toThrow(`number option maximum allowed is ${hotbits.MAX_NUMBER_OF_RESULTS}`);
+    });
   });
 });
