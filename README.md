@@ -57,3 +57,5 @@ Reasons that the returned promise will reject with an error include:
 * An unexpected response from the server
 * Invalid parameters
 
+### Discaimer ###
+I am not associated with [HotBits](https://www.fourmilab.ch/hotbits/).  As such the availability and the data returned from its API are beyond my control.
